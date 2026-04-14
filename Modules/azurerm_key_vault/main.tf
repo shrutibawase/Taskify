@@ -24,6 +24,7 @@ resource "azurerm_key_vault" "example" {
 
     secret_permissions = [
       "Get",
+      "List",
     ]
 
     storage_permissions = [

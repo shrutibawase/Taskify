@@ -66,7 +66,7 @@ nic_vm = {
 
 mysql_server = {
   "mysql_server1" = {
-    mysql_server_name              = "todo-mysql-server12"
+    mysql_server_name              = "todo-mysql-server133"
     mysql_server_rg                = "todo-rg1"
     mysql_server_location          = "Central US"
     mysql_server_version           = "12.0"
@@ -78,7 +78,7 @@ mysql_server = {
 mysql_db = {
   "db1" = {
     mysql_db_name      = "todo-db1"
-    mysql_db_server_id = "/subscriptions/515776c8-b3a8-4862-9224-9442d9a6ebb9/resourceGroups/todo-rg1/providers/Microsoft.Sql/servers/todo-mysql-server12"
+    mysql_db_server_id = "/subscriptions/515776c8-b3a8-4862-9224-9442d9a6ebb9/resourceGroups/todo-rg1/providers/Microsoft.Sql/servers/todo-mysql-server133"
   }
 }
 

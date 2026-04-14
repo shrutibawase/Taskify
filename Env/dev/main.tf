@@ -22,7 +22,7 @@ module "azurerm_public_ip" {
 }
 
 module "azurerm_virtual_machine" {
-  depends_on = [ module.azurerm_resource_group, module.azurerm_virtual_network, module.azurerm_subnet, module.azurerm_public_ip ]
+  depends_on = [ module.azurerm_resource_group, module.azurerm_virtual_network, module.azurerm_subnet, module.azurerm_public_ip, module.azurerm_keyvault ]
   source = "../../Modules/azurerm_virtual_machine"
   nic_vm = var.nic_vm
 }
