@@ -17,6 +17,7 @@ stages:
             provider: 'azurerm'
             command: 'init'
             workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            backendServiceArm: 'Taskify-SC'
             backendAzureRmResourceGroupName: 'rg-pip'
             backendAzureRmStorageAccountName: 'strpipeline123'
             backendAzureRmContainerName: 'containerpipeline'
