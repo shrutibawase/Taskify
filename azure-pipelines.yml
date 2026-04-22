@@ -1,0 +1,25 @@
+trigger: 
+  - main
+  - feature/*
+
+pool:
+  name: taskify-pool
+
+stages:
+  - stage: Build
+    displayName: buildstage
+    jobs:
+      - job: TerraformInittoPlan
+        displayName: "terraform Init to plan"
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            backendAzureRmResourceGroupName: 'rg-pip'
+            backendAzureRmStorageAccountName: 'strpipeline123'
+            backendAzureRmContainerName: 'containerpipeline'
+            backendAzureRmKey: 'keystatefile1'
+
+        
