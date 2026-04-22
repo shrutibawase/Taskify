@@ -1,0 +1,88 @@
+trigger: 
+  - main
+  - feature/*
+
+pool:
+  name: '$(pool)'   # global/variable pipeline
+
+variables:
+  WorkDir: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
+
+stages:
+  - stage: Build
+    displayName: buildstage
+    jobs:
+      - job: TerraformInittoPlan
+        displayName: "terraform Init to plan"
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(WorkDir)'
+            backendServiceArm: 'Taskify-SC'
+            backendAzureRmResourceGroupName: 'rg-pip'
+            backendAzureRmStorageAccountName: 'strpipeline123'
+            backendAzureRmContainerName: 'containerpipeline'
+            backendAzureRmKey: 'keystatefile1'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'validate'
+            workingDirectory: '$(WorkDir)'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'custom'
+            workingDirectory: '$(WorkDir)'
+            outputTo: 'console'
+            customCommand: 'fmt'
+            environmentServiceNameAzureRM: 'Taskify-SC'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(WorkDir)'
+            environmentServiceNameAzureRM: 'Taskify-SC'
+
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: ManualValidation
+        displayName: "Manual Validation"
+        # dependsOn: TerraformInittoPlan
+        pool: server
+        steps:
+        - task: ManualValidation@1
+          inputs:
+            notifyUsers: 'shrutibawase01@gmail.com'
+            approvers: 'shrutibawase01@gmail.com'
+
+      - job: TerraformApply
+        displayName: "Apply"
+        dependsOn: ManualValidation
+        pool: 
+          name: '$(pool)'
+        steps:
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(WorkDir)'
+              backendServiceArm: 'Taskify-SC'
+              backendAzureRmResourceGroupName: 'rg-pip'
+              backendAzureRmStorageAccountName: 'strpipeline123'
+              backendAzureRmContainerName: 'containerpipeline'
+              backendAzureRmKey: 'keystatefile1'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(WorkDir)'
+              commandOptions: '-auto-approve'
+              environmentServiceNameAzureRM: 'Taskify-SC'
