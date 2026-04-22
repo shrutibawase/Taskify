@@ -9,7 +9,7 @@ terraform {
     resource_group_name  = "rg-pip"
     storage_account_name = "strpipeline123"
     container_name       = "containerpipeline"
-    key                  = "keystatefile-dev"
+    key                  = "keystatefile-qa"
     }
 }
 
