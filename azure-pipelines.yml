@@ -3,10 +3,10 @@ trigger:
   - feature/*
 
 pool:
-  name: taskify_pool
+  name: '$(pool)'   # global/variable pipeline
 
 variables:
-  WorkDir: '$(System.DefaultWorkingDirectory)/env/dev'
+  WorkDir: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
 
 stages:
   - stage: Build
@@ -65,7 +65,7 @@ stages:
         displayName: "Apply"
         dependsOn: ManualValidation
         pool: 
-          name: taskify_pool
+          name: '$(pool)'
         steps:
 
           - task: TerraformTask@5
