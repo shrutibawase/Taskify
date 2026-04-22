@@ -44,3 +44,42 @@ stages:
             command: 'plan'
             workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
             environmentServiceNameAzureRM: 'Taskify-SC'
+
+  - stage: Deploy
+    displayName: Deploy
+    jobs:
+      - job: ManualValidation
+        displayName: "Manual Validation"
+        # dependsOn: TerraformInittoPlan
+        pool: server
+        steps:
+        - task: ManualValidation@1
+          inputs:
+            notifyUsers: 'shrutibawase01@gmail.com'
+            approvers: 'shrutibawase01@gmail.com'
+
+      - job: TerraformApply
+        displayName: "Apply"
+        dependsOn: ManualValidation
+        pool: 
+          name: taskify_pool
+        steps:
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+              backendServiceArm: 'Taskify-SC'
+              backendAzureRmResourceGroupName: 'rg-pip'
+              backendAzureRmStorageAccountName: 'strpipeline123'
+              backendAzureRmContainerName: 'containerpipeline'
+              backendAzureRmKey: 'keystatefile1'
+
+          - task: TerraformTask@5
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+              commandOptions: '-auto-approve'
+              environmentServiceNameAzureRM: 'Taskify-SC'
