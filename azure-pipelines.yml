@@ -23,4 +23,24 @@ stages:
             backendAzureRmContainerName: 'containerpipeline'
             backendAzureRmKey: 'keystatefile1'
 
-        
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'validate'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'custom'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            outputTo: 'console'
+            customCommand: 'fmt'
+            environmentServiceNameAzureRM: 'Taskify-SC'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            environmentServiceNameAzureRM: 'Taskify-SC'
