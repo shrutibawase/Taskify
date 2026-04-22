@@ -5,6 +5,9 @@ trigger:
 pool:
   name: taskify_pool
 
+variables:
+  WorkDir: '$(System.DefaultWorkingDirectory)/env/dev'
+
 stages:
   - stage: Build
     displayName: buildstage
@@ -16,7 +19,7 @@ stages:
           inputs:
             provider: 'azurerm'
             command: 'init'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            workingDirectory: '$(WorkDir)'
             backendServiceArm: 'Taskify-SC'
             backendAzureRmResourceGroupName: 'rg-pip'
             backendAzureRmStorageAccountName: 'strpipeline123'
@@ -27,13 +30,13 @@ stages:
           inputs:
             provider: 'azurerm'
             command: 'validate'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            workingDirectory: '$(WorkDir)'
 
         - task: TerraformTask@5
           inputs:
             provider: 'azurerm'
             command: 'custom'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            workingDirectory: '$(WorkDir)'
             outputTo: 'console'
             customCommand: 'fmt'
             environmentServiceNameAzureRM: 'Taskify-SC'
@@ -42,7 +45,7 @@ stages:
           inputs:
             provider: 'azurerm'
             command: 'plan'
-            workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+            workingDirectory: '$(WorkDir)'
             environmentServiceNameAzureRM: 'Taskify-SC'
 
   - stage: Deploy
@@ -69,7 +72,7 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'init'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+              workingDirectory: '$(WorkDir)'
               backendServiceArm: 'Taskify-SC'
               backendAzureRmResourceGroupName: 'rg-pip'
               backendAzureRmStorageAccountName: 'strpipeline123'
@@ -80,6 +83,6 @@ stages:
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/env/dev'
+              workingDirectory: '$(WorkDir)'
               commandOptions: '-auto-approve'
               environmentServiceNameAzureRM: 'Taskify-SC'
