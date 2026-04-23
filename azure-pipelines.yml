@@ -1,21 +1,24 @@
-trigger: 
-  - main
-  - feature/*
+trigger: none
+
+parameters:
+- name: branchName
+  displayName: Select Branch
+  type: string
+  default: main
+
+- name: terraformCommand
+  displayName: Select Terraform Command
+  type: string
+  default: init
+  values:
+    - init
+    - validate
+    - fmt
+    - plan
+    - apply
 
 pool:
   name: $(pool)   # global/variable pipeline
-
-parameters:
-  - name: terraform commands
-    displayName: "select terraform commands"
-    type: object
-    default: 'init'
-    values:
-      - init
-      - validate
-      - fmt
-      - plan
-      - apply
 
 variables:
 - group: New variable group 22-Apr
@@ -30,6 +33,8 @@ stages:
       - job: TerraformInittoPlan
         displayName: "terraform Init to plan"
         steps:
+        - checkout: self
+
         - task: TerraformTask@5
           inputs:
             provider: 'azurerm'
