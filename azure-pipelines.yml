@@ -8,7 +8,7 @@ parameters:
   - name: terraform commands
     displayName: "select terraform commands"
     type: object
-    default: string
+    default: 'init'
     values:
       - init
       - validate
