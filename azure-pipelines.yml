@@ -36,6 +36,8 @@ stages:
         - checkout: self
 
         - task: TerraformTask@5
+          displayName: "Init"
+          condition: eq('${{ parameters.terraformCommand }}', 'init')
           inputs:
             provider: 'azurerm'
             command: 'init'
@@ -47,12 +49,16 @@ stages:
             backendAzureRmKey: 'keystatefile1'
 
         - task: TerraformTask@5
+          displayName: "validate"
+          condition: eq('${{ parameters.terraformCommand }}', 'validate')
           inputs:
             provider: 'azurerm'
             command: 'validate'
             workingDirectory: '$(WorkDir)'
 
         - task: TerraformTask@5
+          displayName: "FMT"
+          condition: eq('${{ parameters.terraformCommand }}', 'fmt')
           inputs:
             provider: 'azurerm'
             command: 'custom'
@@ -62,6 +68,8 @@ stages:
             environmentServiceNameAzureRM: 'Taskify-SC'
 
         - task: TerraformTask@5
+          displayName: "Plan"
+          condition: eq('${{ parameters.terraformCommand }}', 'plan')
           inputs:
             provider: 'azurerm'
             command: 'plan'
@@ -71,19 +79,20 @@ stages:
   - stage: Deploy
     displayName: Deploy
     jobs:
-      - job: ManualValidation
-        displayName: "Manual Validation"
-        # dependsOn: TerraformInittoPlan
-        pool: server
-        steps:
-        - task: ManualValidation@1
-          inputs:
-            notifyUsers: 'shrutibawase01@gmail.com'
-            approvers: 'shrutibawase01@gmail.com'
+      # - job: ManualValidation
+      #   displayName: "Manual Validation"
+      #   # dependsOn: TerraformInittoPlan
+      #   pool: server
+      #   steps:
+      #   - task: ManualValidation@1
+      #     inputs:
+      #       notifyUsers: 'shrutibawase01@gmail.com'
+      #       approvers: 'shrutibawase01@gmail.com'
 
       - job: TerraformApply
         displayName: "Apply"
-        dependsOn: ManualValidation
+        condition: eq('${{ parameters.terraformCommand }}', 'apply')
+        # dependsOn: ManualValidation
         pool: 
           name: '$(pool)'
         steps:
