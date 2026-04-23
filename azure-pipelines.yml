@@ -18,7 +18,10 @@ parameters:
       - apply
 
 variables:
-  WorkDir: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
+- group: New variable group 22-Apr
+
+- name: WorkDir
+  value: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
 
 stages:
   - stage: Build
