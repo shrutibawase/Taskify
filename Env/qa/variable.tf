@@ -1,38 +1,38 @@
-variable "rg"{
+variable "rg" {
   type = map(object({
-    name = string
+    name     = string
     location = string
   }))
 }
 
 variable "vnet" {
-    description = "Virtual network details"
-    type = map(object({
-        vnet_name     = string
-        vnet_location = string
-        vnet_rg       = string
-        address_space  = list(string)
-        dns_servers    = list(string)
-    }))
+  description = "Virtual network details"
+  type = map(object({
+    vnet_name     = string
+    vnet_location = string
+    vnet_rg       = string
+    address_space = list(string)
+    dns_servers   = list(string)
+  }))
 }
 
 variable "subnet" {
   description = "value"
   type = map(object({
-    subnet_name = string
-    subnet_rg = string
-    subnet_vnet = string
+    subnet_name           = string
+    subnet_rg             = string
+    subnet_vnet           = string
     subnet_address_prefix = list(string)
   }))
 }
 
 variable "public_ip" {
-    description = "Public IP details"
-    type = map(object({
-        public_ip_name     = string
-        public_ip_location = string
-        public_ip_rg       = string
-    }))
+  description = "Public IP details"
+  type = map(object({
+    public_ip_name     = string
+    public_ip_location = string
+    public_ip_rg       = string
+  }))
 }
 
 variable "nic_vm" {
@@ -70,12 +70,12 @@ variable "nic_vm" {
 variable "mysql_server" {
   description = "A map of MySQL server configurations"
   type = map(object({
-    mysql_server_name              = string
-    mysql_server_rg                = string
-    mysql_server_location          = string
-    mysql_server_version           = string
-    administrator_login            = string
-    administrator_login_password   = string
+    mysql_server_name            = string
+    mysql_server_rg              = string
+    mysql_server_location        = string
+    mysql_server_version         = string
+    administrator_login          = string
+    administrator_login_password = string
   }))
 }
 
@@ -89,10 +89,12 @@ variable "mysql_db" {
 
 variable "keyvault" {
   description = "A map of key vaults to create"
-  type        = map(object({
+  type = map(any({
     keyvault_name     = string
     keyvault_location = string
     keyvault_rg       = string
+    vm_username       = string
+    vm_password       = string
   }))
-  
+
 }

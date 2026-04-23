@@ -40,8 +40,3 @@ module "azurerm_mysql_database" {
 
 }
 
-module "azurerm_keyvault" {
-  depends_on = [ module.azurerm_resource_group ]
-  source = "../../Modules/azurerm_key_vault"
-  keyvault = var.keyvault
-}
