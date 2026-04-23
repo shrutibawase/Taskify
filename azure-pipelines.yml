@@ -2,7 +2,8 @@ trigger:
   - main
   - feature/*
 
-pool: '$(pool)'   # global/variable pipeline
+pool:
+  name: $(pool)   # global/variable pipeline
 
 parameters:
   - name: terraform commands
