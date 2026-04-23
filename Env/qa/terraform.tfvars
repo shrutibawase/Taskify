@@ -10,16 +10,16 @@ vnet = {
     vnet_name     = "todo-vnet"
     vnet_location = "East US"
     vnet_rg       = "todo-rg1"
-    address_space  = ["10.0.0.0/16"]
-    dns_servers    = ["8.8.8.8"]
-    }
+    address_space = ["10.0.0.0/16"]
+    dns_servers   = ["8.8.8.8"]
+  }
 }
 
 subnet = {
   "subnet1" = {
-    subnet_name = "todo-subnet1"
-    subnet_rg = "todo-rg1"
-    subnet_vnet = "todo-vnet"
+    subnet_name           = "todo-subnet1"
+    subnet_rg             = "todo-rg1"
+    subnet_vnet           = "todo-vnet"
     subnet_address_prefix = ["10.0.1.0/24"]
   }
 }
@@ -66,12 +66,12 @@ nic_vm = {
 
 mysql_server = {
   "mysql_server1" = {
-    mysql_server_name              = "todo-mysql-server133"
-    mysql_server_rg                = "todo-rg1"
-    mysql_server_location          = "Central US"
-    mysql_server_version           = "12.0"
-    administrator_login            = "adminuser"
-    administrator_login_password   = "P@ssw0rd1234"
+    mysql_server_name            = "todo-mysql-server133"
+    mysql_server_rg              = "todo-rg1"
+    mysql_server_location        = "Central US"
+    mysql_server_version         = "12.0"
+    administrator_login          = "adminuser"
+    administrator_login_password = "P@ssw0rd1234"
   }
 }
 
@@ -83,9 +83,11 @@ mysql_db = {
 }
 
 keyvault = {
-  "keyvault1" = {
+  keyvault1 = {
     keyvault_name     = "keyvault12dev001"
     keyvault_location = "East US"
     keyvault_rg       = "todo-rg1"
+    vm_username       = "azureuser"
+    vm_password       = "P@ssword123!"
   }
 }

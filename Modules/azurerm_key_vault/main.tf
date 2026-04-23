@@ -2,7 +2,7 @@ data "azurerm_client_config" "current" {
   
 }
 
-resource "azurerm_key_vault" "example" {
+resource "azurerm_key_vault" "kv" {
     for_each = var.keyvault
   name                        = each.value.keyvault_name
   location                    = each.value.keyvault_location
@@ -31,4 +31,17 @@ resource "azurerm_key_vault" "example" {
       "Get",
     ]
   }
+}
+resource "azurerm_key_vault_secret" "username" {
+  for_each = var.keyvault
+  name         = "vm-username"
+  value        = each.value.vm_username
+  key_vault_id = azurerm_key_vault.kv[each.key].id
+}
+
+resource "azurerm_key_vault_secret" "password" {
+  for_each = var.keyvault
+  name         = "vm-password"
+  value        = each.value.vm_password
+  key_vault_id = azurerm_key_vault.kv[each.key].id
 }
