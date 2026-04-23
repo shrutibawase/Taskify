@@ -5,6 +5,18 @@ trigger:
 pool:
   name: '$(pool)'   # global/variable pipeline
 
+parameters:
+  - name: terraform commands
+    displayName: "select terraform commands"
+    type: object
+    default: ['init']
+    values:
+      - init
+      - validate
+      - fmt
+      - plan
+      - apply
+
 variables:
   WorkDir: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
 
