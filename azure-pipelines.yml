@@ -37,7 +37,7 @@ stages:
 
         - task: TerraformTask@5
           displayName: "Init"
-          condition: eq('${{ parameters.terraformCommand }}', 'init')
+          condition: eq('${{ parameters.terraformCommand }}','init')
           inputs:
             provider: 'azurerm'
             command: 'init'
@@ -50,7 +50,10 @@ stages:
 
         - task: TerraformTask@5
           displayName: "validate"
-          condition: eq('${{ parameters.terraformCommand }}', 'validate')
+          condition: or(
+                      eq('${{ parameters.terraformCommand }}','init'),
+                      eq('${{ parameters.terraformCommand }}','validate')
+                    )
           inputs:
             provider: 'azurerm'
             command: 'validate'
@@ -58,7 +61,11 @@ stages:
 
         - task: TerraformTask@5
           displayName: "FMT"
-          condition: eq('${{ parameters.terraformCommand }}', 'fmt')
+          condition: or(
+                      eq('${{ parameters.terraformCommand }}','init'),
+                      eq('${{ parameters.terraformCommand }}','validate'),
+                      eq('${{ parameters.terraformCommand }}','fmt')
+                    )
           inputs:
             provider: 'azurerm'
             command: 'custom'
@@ -69,7 +76,12 @@ stages:
 
         - task: TerraformTask@5
           displayName: "Plan"
-          condition: eq('${{ parameters.terraformCommand }}', 'plan')
+          condition: or(
+                    eq('${{ parameters.terraformCommand }}','init'),
+                    eq('${{ parameters.terraformCommand }}','validate'),
+                    eq('${{ parameters.terraformCommand }}','fmt'),
+                    eq('${{ parameters.terraformCommand }}','plan')
+                  )
           inputs:
             provider: 'azurerm'
             command: 'plan'

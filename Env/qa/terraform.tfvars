@@ -87,5 +87,7 @@ keyvault = {
     keyvault_name     = "keyvault12dev001"
     keyvault_location = "East US"
     keyvault_rg       = "todo-rg1"
+    vm_username       = "azureuser"
+    vm_password       = "P@ssword123!"
   }
 }
