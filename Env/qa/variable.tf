@@ -93,8 +93,7 @@ variable "keyvault" {
     keyvault_name     = string
     keyvault_location = string
     keyvault_rg       = string
-    vm_username       = string
-    vm_password       = string
+    
   }))
 
 }
