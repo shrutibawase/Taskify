@@ -12,106 +12,144 @@ parameters:
   default: init
   values:
     - init
-    - validate
     - fmt
+    - validate
     - plan
     - apply
 
 pool:
-  name: $(pool)   # global/variable pipeline
+  name: $(pool)
 
 variables:
 - group: New variable group 22-Apr
 
 - name: WorkDir
-  value: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
+  value: '$(System.DefaultWorkingDirectory)/env/dev'
 
 stages:
-  - stage: Build
-    displayName: buildstage
-    jobs:
-      - job: TerraformInittoPlan
-        displayName: "terraform Init to plan"
-        steps:
-        - checkout: self
 
-        - task: TerraformTask@5
-          displayName: "Init"
-          condition: eq('${{ parameters.terraformCommand }}', 'init')
-          inputs:
-            provider: 'azurerm'
-            command: 'init'
-            workingDirectory: '$(WorkDir)'
-            backendServiceArm: 'Taskify-SC'
-            backendAzureRmResourceGroupName: 'rg-pip'
-            backendAzureRmStorageAccountName: 'strpipeline123'
-            backendAzureRmContainerName: 'containerpipeline'
-            backendAzureRmKey: 'keystatefile1'
+# ===============================
+# BUILD STAGE
+# ===============================
+- stage: Build
+  displayName: Build Stage
 
-        - task: TerraformTask@5
-          displayName: "validate"
-          condition: eq('${{ parameters.terraformCommand }}', 'validate')
-          inputs:
-            provider: 'azurerm'
-            command: 'validate'
-            workingDirectory: '$(WorkDir)'
+  jobs:
+  - job: TerraformWorkflow
+    displayName: Terraform Init to Plan
 
-        - task: TerraformTask@5
-          displayName: "FMT"
-          condition: eq('${{ parameters.terraformCommand }}', 'fmt')
-          inputs:
-            provider: 'azurerm'
-            command: 'custom'
-            workingDirectory: '$(WorkDir)'
-            outputTo: 'console'
-            customCommand: 'fmt'
-            environmentServiceNameAzureRM: 'Taskify-SC'
+    steps:
+    - checkout: self
+      clean: true
 
-        - task: TerraformTask@5
-          displayName: "Plan"
-          condition: eq('${{ parameters.terraformCommand }}', 'plan')
-          inputs:
-            provider: 'azurerm'
-            command: 'plan'
-            workingDirectory: '$(WorkDir)'
-            environmentServiceNameAzureRM: 'Taskify-SC'
+    # ===============================
+    # INIT
+    # Runs only when INIT selected
+    # ===============================
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      condition: eq('${{ parameters.terraformCommand }}', 'init')
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(WorkDir)'
+        backendServiceArm: 'Taskify-SC'
+        backendAzureRmResourceGroupName: 'rg-pip'
+        backendAzureRmStorageAccountName: 'strpipeline123'
+        backendAzureRmContainerName: 'containerpipeline'
+        backendAzureRmKey: 'keystatefile1'
 
-  - stage: Deploy
-    displayName: Deploy
-    jobs:
-      # - job: ManualValidation
-      #   displayName: "Manual Validation"
-      #   # dependsOn: TerraformInittoPlan
-      #   pool: server
-      #   steps:
-      #   - task: ManualValidation@1
-      #     inputs:
-      #       notifyUsers: 'shrutibawase01@gmail.com'
-      #       approvers: 'shrutibawase01@gmail.com'
+    # ===============================
+    # FMT
+    # Runs when INIT or FMT selected
+    # ===============================
+    - task: TerraformTask@5
+      displayName: Terraform FMT
+      condition: or(
+                  eq('${{ parameters.terraformCommand }}','init'),
+                  eq('${{ parameters.terraformCommand }}','fmt')
+                )
+      inputs:
+        provider: 'azurerm'
+        command: 'custom'
+        workingDirectory: '$(WorkDir)'
+        customCommand: 'fmt'
+        outputTo: 'console'
+        environmentServiceNameAzureRM: 'Taskify-SC'
 
-      - job: TerraformApply
-        displayName: "Apply"
-        condition: eq('${{ parameters.terraformCommand }}', 'apply')
-        # dependsOn: ManualValidation
-        pool: 
-          name: '$(pool)'
-        steps:
+    # ===============================
+    # VALIDATE
+    # Runs when INIT / FMT / VALIDATE selected
+    # ===============================
+    - task: TerraformTask@5
+      displayName: Terraform Validate
+      condition: or(
+                  eq('${{ parameters.terraformCommand }}','init'),
+                  eq('${{ parameters.terraformCommand }}','fmt'),
+                  eq('${{ parameters.terraformCommand }}','validate')
+                )
+      inputs:
+        provider: 'azurerm'
+        command: 'validate'
+        workingDirectory: '$(WorkDir)'
 
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(WorkDir)'
-              backendServiceArm: 'Taskify-SC'
-              backendAzureRmResourceGroupName: 'rg-pip'
-              backendAzureRmStorageAccountName: 'strpipeline123'
-              backendAzureRmContainerName: 'containerpipeline'
-              backendAzureRmKey: 'keystatefile1'
+    # ===============================
+    # PLAN
+    # Runs when INIT / FMT / VALIDATE / PLAN selected
+    # ===============================
+    - task: TerraformTask@5
+      displayName: Terraform Plan
+      condition: or(
+                  eq('${{ parameters.terraformCommand }}','init'),
+                  eq('${{ parameters.terraformCommand }}','fmt'),
+                  eq('${{ parameters.terraformCommand }}','validate'),
+                  eq('${{ parameters.terraformCommand }}','plan')
+                )
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        workingDirectory: '$(WorkDir)'
+        environmentServiceNameAzureRM: 'Taskify-SC'
 
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(WorkDir)'
-              commandOptions: '-auto-approve'
-              environmentServiceNameAzureRM: 'Taskify-SC'
+
+# ===============================
+# DEPLOY STAGE
+# ===============================
+- stage: Deploy
+  displayName: Deploy Stage
+  dependsOn: Build
+
+  jobs:
+  - job: TerraformApply
+    displayName: Terraform Apply
+    condition: eq('${{ parameters.terraformCommand }}', 'apply')
+
+    pool:
+      name: $(pool)
+
+    steps:
+    - checkout: self
+      clean: true
+
+    # INIT before APPLY
+    - task: TerraformTask@5
+      displayName: Terraform Init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        workingDirectory: '$(WorkDir)'
+        backendServiceArm: 'Taskify-SC'
+        backendAzureRmResourceGroupName: 'rg-pip'
+        backendAzureRmStorageAccountName: 'strpipeline123'
+        backendAzureRmContainerName: 'containerpipeline'
+        backendAzureRmKey: 'keystatefile1'
+
+    # APPLY
+    - task: TerraformTask@5
+      displayName: Terraform Apply
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        workingDirectory: '$(WorkDir)'
+        commandOptions: '-auto-approve'
+        environmentServiceNameAzureRM: 'Taskify-SC'
