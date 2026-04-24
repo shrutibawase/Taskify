@@ -107,7 +107,7 @@ stages:
         steps:
         - task: su-sendgrid@0
           inputs:
-            SendGridAPIKey: 'OR7056f5cbfa4aa3131f869a27dd3d4277'
+            SendGridAPIKey: 'USa588c32c8924ddb72fc8ded0321e8552'
             senderEmailAddress: 'shrutibawase01@gmail.com'
             recipientEmailAddress: 'shrutibawase01@gmail.com'
             emailSubject: 'Tfsec Security Report'
