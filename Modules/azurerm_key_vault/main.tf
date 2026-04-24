@@ -32,16 +32,3 @@ resource "azurerm_key_vault" "kv" {
     ]
   }
 }
-resource "azurerm_key_vault_secret" "username" {
-  for_each = var.keyvault
-  name         = "vm-username"
-  value        = each.value.vm_username
-  key_vault_id = azurerm_key_vault.kv[each.key].id
-}
-
-resource "azurerm_key_vault_secret" "password" {
-  for_each = var.keyvault
-  name         = "vm-password"
-  value        = each.value.vm_password
-  key_vault_id = azurerm_key_vault.kv[each.key].id
-}
