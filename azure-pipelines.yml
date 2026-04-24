@@ -99,6 +99,20 @@ stages:
               version: 'v1.26.0'
               dir: '$(System.DefaultWorkingDirectory)'
 
+  - stage: 
+    displayName: Mail
+    jobs:
+      - job: mail
+        displayName: mail
+        steps:
+        - task: su-sendgrid@0
+          inputs:
+            SendGridAPIKey: 'OR7056f5cbfa4aa3131f869a27dd3d4277'
+            senderEmailAddress: 'shrutibawase01@gmail.com'
+            recipientEmailAddress: 'shrutibawase01@gmail.com'
+            emailSubject: 'Tfsec Security Report'
+            emailBody: 'Text'
+
   - stage: Deploy
     displayName: Deploy
     jobs:
