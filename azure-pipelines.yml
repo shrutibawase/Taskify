@@ -99,19 +99,19 @@ stages:
               version: 'v1.26.0'
               dir: '$(System.DefaultWorkingDirectory)'
 
-  - stage: 
-    displayName: Mail
-    jobs:
-      - job: mail
-        displayName: mail
-        steps:
-        - task: su-sendgrid@0
-          inputs:
-            SendGridAPIKey: 'USa588c32c8924ddb72fc8ded0321e8552'
-            senderEmailAddress: 'shrutibawase01@gmail.com'
-            recipientEmailAddress: 'shrutibawase01@gmail.com'
-            emailSubject: 'Tfsec Security Report'
-            emailBody: 'Text'
+  # - stage: 
+  #   displayName: Mail
+  #   jobs:
+  #     - job: mail
+  #       displayName: mail
+  #       steps:
+  #       - task: su-sendgrid@0
+  #         inputs:
+  #           SendGridAPIKey: 'USa588c32c8924ddb72fc8ded0321e8552'
+  #           senderEmailAddress: 'shrutibawase01@gmail.com'
+  #           recipientEmailAddress: 'shrutibawase01@gmail.com'
+  #           emailSubject: 'Tfsec Security Report'
+  #           emailBody: 'Text'
   
   - stage: SuperLinter
     displayName: Linting
