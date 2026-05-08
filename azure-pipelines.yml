@@ -112,6 +112,20 @@ stages:
             recipientEmailAddress: 'shrutibawase01@gmail.com'
             emailSubject: 'Tfsec Security Report'
             emailBody: 'Text'
+  
+  - stage: SuperLinter
+    displayName: Linting
+    jobs:
+      - job: TfLint
+        displayName: "Lint"
+        steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: |
+              tflint --init
+              tflint
+              tflint --recursive
 
   - stage: Deploy
     displayName: Deploy
