@@ -119,7 +119,7 @@ stages:
             # continueOnError: true
             inputs:
               targetType: 'inline'
-              script: 'checkov -d . --framework terraform -o cli > checkov-report.txt'
+              script: 'checkov -d .'
 
           - task: PublishBuildArtifacts@1
             inputs:
