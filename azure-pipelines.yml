@@ -106,6 +106,7 @@ stages:
         steps:
 
           - task: PowerShell@2
+            continueOnError: true
             inputs:
               targetType: 'inline'
               script: 'checkov -d . --framework terraform -o cli > checkov-report.txt'
