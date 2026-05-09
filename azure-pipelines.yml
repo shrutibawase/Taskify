@@ -105,22 +105,12 @@ stages:
         displayName: "Run Checkov IaC Scan"
         steps:
 
-          - checkout: self
-
-          - task: UsePythonVersion@0
+          - task: PowerShell@2
             inputs:
-              versionSpec: '3.x'
-            displayName: "Use Python 3"
-
-          - script: |
-              pip install --upgrade pip
-              pip install checkov
-            displayName: "Install Checkov"
-
-          - script: |
-              echo "Running Checkov scan..."
-              checkov -d $(System.DefaultWorkingDirectory) --framework terraform --output cli --soft-fail
-            displayName: "Run Checkov Scan"
+              targetType: 'inline'
+              script: |
+                pip install checkov
+                checkov -d $(System.DefaultWorkingDirectory) --framework terraform
     
   - stage: SuperLinter
     displayName: Linting
