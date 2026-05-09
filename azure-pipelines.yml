@@ -108,9 +108,7 @@ stages:
           - task: PowerShell@2
             inputs:
               targetType: 'inline'
-              script: |
-                pip install checkov
-                checkov -d $(System.DefaultWorkingDirectory) --framework terraform
+              script: 'checkov -d .'
     
   - stage: SuperLinter
     displayName: Linting
