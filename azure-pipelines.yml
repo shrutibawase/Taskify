@@ -110,6 +110,11 @@ stages:
             inputs:
               targetType: 'inline'
               script: 'checkov -d . --framework terraform -o cli > checkov-report.txt'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathToPublish: 'checkov-report.txt'
+              artifactName: 'checkov-report'
     
   - stage: SuperLinter
     displayName: Linting
