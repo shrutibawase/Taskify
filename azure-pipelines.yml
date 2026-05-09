@@ -119,12 +119,14 @@ stages:
             # continueOnError: true
             inputs:
               targetType: 'inline'
-              script: 'checkov -d .'
+              script: 'checkov -d .checkov -d . --framework terraform -o cli > checkov-report.txt'
 
           - task: PublishBuildArtifacts@1
+            displayName: "Publish Checkov Report"
             inputs:
               pathToPublish: 'checkov-report.txt'
               artifactName: 'checkov-report'
+              publishLocation: 'Container'
     
   - stage: SuperLinter
     displayName: Linting
