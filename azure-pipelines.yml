@@ -108,7 +108,7 @@ stages:
           - task: PowerShell@2
             inputs:
               targetType: 'inline'
-              script: 'checkov -d .'
+              script: 'checkov -d . --framework terraform -o cli > checkov-report.txt'
     
   - stage: SuperLinter
     displayName: Linting
