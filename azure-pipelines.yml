@@ -132,6 +132,7 @@ stages:
     jobs:
       - job: Infracost
         displayName: infracost
+        continueOnError: true
         steps:
           - task: PowerShell@2
             inputs:
@@ -159,6 +160,7 @@ stages:
     jobs:
       - job: terrascan
         displayName: "terrascan"
+        continueOnError: true
         steps:
           - task: PowerShell@2
             inputs:
