@@ -126,6 +126,17 @@ stages:
               pathToPublish: 'checkov-report.txt'
               artifactName: 'checkov-report'
               publishLocation: 'Container'
+
+  - stage: InfraCost
+    displayName: Infra-cost
+    jobs:
+      - job: Infracost
+        displayName: infracost
+        steps:
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: 'infracost breakdown --path .'
     
   - stage: SuperLinter
     displayName: Linting
