@@ -1,52 +1,33 @@
 trigger: none
 
-parameters:
-- name: branchName
-  displayName: Select Branch
-  type: string
-  default: main
-
-- name: terraformCommand
-  displayName: Select Terraform Command
-  type: string
-  default: init
-  values:
-    - init
-    - validate
-    - fmt
-    - plan
-    - apply
-
 pool:
-  name: $(pool)   # global/variable pipeline
+  name: $(pool)
 
 variables:
 - group: New variable group 22-Apr
 
 - name: WorkDir
-  value: '$(System.DefaultWorkingDirectory)/env/dev' # pipeline variable
+  value: '$(System.DefaultWorkingDirectory)/env/dev'
 
 stages:
-  - stage: cleaing 
-    displayName: cleanup
-    jobs:
-      - job: cleanup
-        displayName: "clean"
-        steps:
-          # ---------------- CODE CHECKOUT ----------------
+
+# ---------------- CLEANUP ----------------
+- stage: Cleanup
+  jobs:
+    - job: Clean
+      steps:
         - checkout: self
           clean: true
-          
-  - stage: Build
-    displayName: buildstage
-    jobs:
-      - job: TerraformInittoPlan
-        displayName: "terraform Init to plan"
-        steps:
+
+# ---------------- BUILD ----------------
+- stage: Build
+  dependsOn: Cleanup
+  jobs:
+    - job: TerraformBuild
+      steps:
 
         - task: TerraformTask@5
-          displayName: "Init"
-          condition: eq('${{ parameters.terraformCommand }}','init')
+          displayName: Terraform Init
           inputs:
             provider: 'azurerm'
             command: 'init'
@@ -58,166 +39,111 @@ stages:
             backendAzureRmKey: 'keystatefile1'
 
         - task: TerraformTask@5
-          displayName: "validate"
-          condition: or(
-                      eq('${{ parameters.terraformCommand }}','init'),
-                      eq('${{ parameters.terraformCommand }}','validate')
-                    )
+          displayName: Validate
           inputs:
             provider: 'azurerm'
             command: 'validate'
             workingDirectory: '$(WorkDir)'
 
         - task: TerraformTask@5
-          displayName: "FMT"
-          condition: or(
-                      eq('${{ parameters.terraformCommand }}','init'),
-                      eq('${{ parameters.terraformCommand }}','validate'),
-                      eq('${{ parameters.terraformCommand }}','fmt')
-                    )
-          inputs:
-            provider: 'azurerm'
-            command: 'custom'
-            workingDirectory: '$(WorkDir)'
-            outputTo: 'console'
-            customCommand: 'fmt'
-            environmentServiceNameAzureRM: 'Taskify-SC'
-
-        - task: TerraformTask@5
-          displayName: "Plan"
-          condition: or(
-                    eq('${{ parameters.terraformCommand }}','init'),
-                    eq('${{ parameters.terraformCommand }}','validate'),
-                    eq('${{ parameters.terraformCommand }}','fmt'),
-                    eq('${{ parameters.terraformCommand }}','plan')
-                  )
+          displayName: Plan
           inputs:
             provider: 'azurerm'
             command: 'plan'
             workingDirectory: '$(WorkDir)'
             environmentServiceNameAzureRM: 'Taskify-SC'
 
-  - stage: 
-    displayName: Scanning
-    jobs:
-      - job: SecurityScanning
-        displayName: 'SecurityScanning'
-        steps:
-          - task: tfsec@1
-            inputs:
-              version: 'v1.26.0'
-              dir: '$(System.DefaultWorkingDirectory)'
+# ---------------- PARALLEL SCANS ----------------
+- stage: SecurityScans
+  dependsOn: Build
+  jobs:
 
-  - stage: SecurityScan
-    displayName: "Security Scanning (Checkov)"
-    jobs:
-      - job: CheckovScan
-        displayName: "Run Checkov IaC Scan"
-        steps:
+    # TFSEC
+    - job: tfsecScan
+      displayName: TFSEC Scan
+      steps:
+        - task: tfsec@1
+          inputs:
+            version: 'v1.26.0'
+            dir: '$(System.DefaultWorkingDirectory)'
 
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: 'checkov -d . --framework terraform --soft-fail -o cli > checkov-report.txt'
-
-          - task: PublishBuildArtifacts@1
-            displayName: "Publish Checkov Report"
-            inputs:
-              pathToPublish: 'checkov-report.txt'
-              artifactName: 'checkov-report'
-              publishLocation: 'Container'
-
-  - stage: InfraCost
-    displayName: Infra-cost
-    jobs:
-      - job: Infracost
-        displayName: infracost
-        continueOnError: true
-        steps:
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: 'infracost breakdown --path .'
-    
-  - stage: SuperLinter
-    displayName: Linting
-    
-    jobs:
-      - job: TfLint
-        displayName: "Lint"
-        continueOnError: true
-        steps:
+    # CHECKOV
+    - job: checkovScan
+      displayName: Checkov Scan
+      steps:
         - task: PowerShell@2
           inputs:
-            targetType: 'inline'
+            targetType: inline
+            script: |
+              checkov -d . --framework terraform --soft-fail
+
+    # TFLINT
+    - job: tflintScan
+      displayName: TFLint Scan
+      continueOnError: true
+      steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: inline
             script: |
               tflint --init
               tflint --recursive
-            
-  - stage: Terrascan
-    displayName: Terrascan
-    
-    jobs:
-      - job: terrascan
-        displayName: "terrascan"
-        continueOnError: true
-        steps:
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: |
-                terrascan init
-                terrascan scan
 
-  - stage: kics
-    displayName: kicsScan
-    
-    jobs:
-      - job: KICS
-        displayName: "KICS"
-        continueOnError: true
-        steps:
-          - task: PowerShell@2
-            inputs:
-              targetType: 'inline'
-              script: 'kics scan -p .'
+    # TERRASCAN
+    - job: terrascanScan
+      displayName: Terrascan Scan
+      steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: inline
+            script: |
+              terrascan init
+              terrascan scan
 
-  - stage: Deploy
-    displayName: Deploy
-    jobs:
-      # - job: ManualValidation
-      #   displayName: "Manual Validation"
-      #   # dependsOn: TerraformInittoPlan
-      #   pool: server
-      #   steps:
-      #   - task: ManualValidation@1
-      #     inputs:
-      #       notifyUsers: 'shrutibawase01@gmail.com'
-      #       approvers: 'shrutibawase01@gmail.com'
+    # KICS
+    - job: kicsScan
+      displayName: KICS Scan
+      continueOnError: true
+      steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: inline
+            script: |
+              kics scan -p .
 
-      - job: TerraformApply
-        displayName: "Apply"
-        condition: eq('${{ parameters.terraformCommand }}', 'apply')
-        # dependsOn: ManualValidation
-        pool: 
-          name: '$(pool)'
-        steps:
+    # INFRACOST
+    - job: infracostScan
+      displayName: Infracost
+      steps:
+        - task: PowerShell@2
+          inputs:
+            targetType: inline
+            script: |
+              infracost breakdown --path .
 
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              workingDirectory: '$(WorkDir)'
-              backendServiceArm: 'Taskify-SC'
-              backendAzureRmResourceGroupName: 'rg-pip'
-              backendAzureRmStorageAccountName: 'strpipeline123'
-              backendAzureRmContainerName: 'containerpipeline'
-              backendAzureRmKey: 'keystatefile1'
+# ---------------- DEPLOY ----------------
+- stage: Deploy
+  dependsOn: SecurityScans
+  jobs:
 
-          - task: TerraformTask@5
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              workingDirectory: '$(WorkDir)'
-              commandOptions: '-auto-approve'
-              environmentServiceNameAzureRM: 'Taskify-SC'
+    - job: TerraformApply
+      steps:
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(WorkDir)'
+            backendServiceArm: 'Taskify-SC'
+            backendAzureRmResourceGroupName: 'rg-pip'
+            backendAzureRmStorageAccountName: 'strpipeline123'
+            backendAzureRmContainerName: 'containerpipeline'
+            backendAzureRmKey: 'keystatefile1'
+
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(WorkDir)'
+            commandOptions: '-auto-approve'
+            environmentServiceNameAzureRM: 'Taskify-SC'
