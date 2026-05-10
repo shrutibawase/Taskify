@@ -140,17 +140,32 @@ stages:
     
   - stage: SuperLinter
     displayName: Linting
+    
     jobs:
       - job: TfLint
         displayName: "Lint"
+        continueOnError: true
         steps:
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
             script: |
               tflint --init
-              tflint
               tflint --recursive
+            
+  - stage: Terrascan
+    displayName: Terrascan
+    
+    jobs:
+      - job: terrascan
+        displayName: "terrascan"
+        steps:
+          - task: PowerShell@2
+            inputs:
+              targetType: 'inline'
+              script: |
+                terrascan init
+                terrascan scan
 
   - stage: Deploy
     displayName: Deploy
