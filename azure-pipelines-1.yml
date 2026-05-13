@@ -23,3 +23,14 @@ stages:
           Write-Host "PATH = $env:PATH"
           & java -version
           & mvn --version
+
+    - task: PowerShell@2
+      displayName: Maven Clean Package
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(System.DefaultWorkingDirectory)\JavaLoginPage'
+        script: |
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+          $env:PATH="$($env:JAVA_HOME)\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
+          & mvn clean package
+
