@@ -43,44 +43,53 @@ stages:
 
 - stage: Deploy
   displayName: Deploy to Tomcat
+
   dependsOn: Build
 
   jobs:
   - job: TomcatDeploy
 
     steps:
+
+    # Download Build Artifact
     - download: current
       artifact: java-war
 
+    # Stop Tomcat
     - task: PowerShell@2
       displayName: Stop Tomcat
       inputs:
         targetType: 'inline'
         script: |
-          & "C:\Users\shrut\Downloads\apache-tomcat-9.0.113\bin\shutdown.bat"
+
+          & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\shutdown.bat"
+
           Start-Sleep -Seconds 10
 
+    # Copy WAR File
     - task: PowerShell@2
       displayName: Copy WAR File
       inputs:
         targetType: 'inline'
         script: |
+
           Copy-Item `
           "$(Pipeline.Workspace)\java-war\*.war" `
-          "C:\Users\shrut\Downloads\apache-tomcat-9.0.113\webapps\" `
+          "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\" `
           -Force
 
+    # Start Tomcat
     - task: PowerShell@2
       displayName: Start Tomcat
       inputs:
         targetType: 'inline'
         script: |
 
-          & "C:\Users\shrut\Downloads\apache-tomcat-9.0.113\bin\startup.bat"
+          & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\startup.bat"
 
           Start-Sleep -Seconds 15
 
-    # Application URL
+    # Show URL
     - task: PowerShell@2
       displayName: Application URL
       inputs:
