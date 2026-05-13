@@ -17,14 +17,9 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-          echo $env:JAVA_HOME
-          java -version
-          mvn --version
-
-    - task: PowerShell@2
-      displayName: Maven Build
-      inputs:
-        targetType: 'inline'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/JavaLoginPage'
-        script: |
-          mvn clean package
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+          $env:PATH="$($env:JAVA_HOME)\bin;$env:PATH"
+          Write-Host "JAVA_HOME = $env:JAVA_HOME"
+          Write-Host "PATH = $env:PATH"
+          & java -version
+          & mvn --version
