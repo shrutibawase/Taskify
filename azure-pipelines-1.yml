@@ -6,15 +6,25 @@ pool:
 variables:
   - group: New variable group 22-Apr
 
-  - name: WorkDir
-    value: '$(System.DefaultWorkingDirectory)/env/dev'
-
 stages:
-  - stage: build
-    jobs:
-      - job: 
-        steps:
-        - task: PowerShell@2
-          inputs:
-            targetType: 'inline'
-            script: 'mvn clean package'
+- stage: Build
+  jobs:
+  - job: MavenBuild
+    steps:
+
+    - task: PowerShell@2
+      displayName: Check Java and Maven
+      inputs:
+        targetType: 'inline'
+        script: |
+          echo $env:JAVA_HOME
+          java -version
+          mvn --version
+
+    - task: PowerShell@2
+      displayName: Maven Build
+      inputs:
+        targetType: 'inline'
+        workingDirectory: '$(System.DefaultWorkingDirectory)/JavaLoginPage'
+        script: |
+          mvn clean package
