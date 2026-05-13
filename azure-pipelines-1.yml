@@ -34,3 +34,8 @@ stages:
           $env:PATH="$($env:JAVA_HOME)\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
           & mvn clean package
 
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)\JavaLoginPage\target'
+        ArtifactName: 'java-war'
+        publishLocation: 'Container'
