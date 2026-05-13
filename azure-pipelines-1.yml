@@ -51,7 +51,7 @@ stages:
 
     steps:
 
-    # Download Build Artifact
+    # Download Artifact
     - download: current
       artifact: java-war
 
@@ -61,6 +61,12 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
+
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+
+          $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
+
+          $env:PATH="$env:JAVA_HOME\bin;$env:CATALINA_HOME\bin;$env:PATH"
 
           & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\shutdown.bat"
 
@@ -85,17 +91,25 @@ stages:
         targetType: 'inline'
         script: |
 
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+
+          $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
+
+          $env:PATH="$env:JAVA_HOME\bin;$env:CATALINA_HOME\bin;$env:PATH"
+
           & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\startup.bat"
 
-          Start-Sleep -Seconds 15
+          Start-Sleep -Seconds 20
 
-    # Show URL
+    # Verify Deployment
     - task: PowerShell@2
-      displayName: Application URL
+      displayName: Verify Application
       inputs:
         targetType: 'inline'
         script: |
 
           Write-Host "Application deployed successfully"
+
+          Write-Host "Open Browser:"
 
           Write-Host "http://localhost:8080/JavaLoginShowcase"
