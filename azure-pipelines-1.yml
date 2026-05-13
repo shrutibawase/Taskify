@@ -36,6 +36,6 @@ stages:
 
     - task: PublishBuildArtifacts@1
       inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)\JavaLoginPage\target'
+        PathtoPublish: '$(Build.SourcesDirectory)\JavaLoginPage\target'
         ArtifactName: 'java-war'
         publishLocation: 'Container'
