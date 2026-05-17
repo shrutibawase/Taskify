@@ -4,7 +4,7 @@ pool:
   name: $(pool)
 
 variables:
-  - group: New variable group 22-Apr
+- group: New variable group 22-Apr
 
 stages:
 
@@ -19,23 +19,8 @@ stages:
 
     steps:
 
-    # Java + Maven Check
     - task: PowerShell@2
-      displayName: Check Java and Maven
-      inputs:
-        targetType: 'inline'
-        script: |
-
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
-
-          $env:PATH="$env:JAVA_HOME\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
-
-          java -version
-          mvn -version
-
-    # Maven Build
-    - task: PowerShell@2
-      displayName: Maven Clean Package
+      displayName: Maven Build
       inputs:
         targetType: 'inline'
         workingDirectory: '$(System.DefaultWorkingDirectory)\JavaLoginPage'
@@ -45,11 +30,13 @@ stages:
 
           $env:PATH="$env:JAVA_HOME\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
 
+          java -version
+          mvn -version
+
           mvn clean package
 
-    # Publish WAR Artifact
     - task: PublishBuildArtifacts@1
-      displayName: Publish WAR Artifact
+      displayName: Publish WAR
       inputs:
         PathtoPublish: '$(System.DefaultWorkingDirectory)\JavaLoginPage\target'
         ArtifactName: 'java-war'
@@ -64,32 +51,27 @@ stages:
   dependsOn: Build
 
   jobs:
-  - job: TomcatDeploy
+  - job: DeployWAR
 
     steps:
 
-    # Download Artifact
     - download: current
       artifact: java-war
 
-    # Stop Tomcat
+    # Stop Tomcat Service
     - task: PowerShell@2
-      displayName: Stop Tomcat
+      displayName: Stop Tomcat Service
       inputs:
         targetType: 'inline'
         script: |
 
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
-
-          $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
-
-          & "$env:CATALINA_HOME\bin\shutdown.bat"
+          net stop Tomcat9
 
           Start-Sleep -Seconds 10
 
-    # Clean Old Deployment
+    # Remove Old WAR
     - task: PowerShell@2
-      displayName: Clean Old WAR
+      displayName: Remove Old WAR
       inputs:
         targetType: 'inline'
         script: |
@@ -98,9 +80,9 @@ stages:
           "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\JavaLoginShowcase*" `
           -Recurse -Force -ErrorAction SilentlyContinue
 
-    # Copy WAR File
+    # Copy New WAR
     - task: PowerShell@2
-      displayName: Copy WAR File
+      displayName: Copy WAR
       inputs:
         targetType: 'inline'
         script: |
@@ -110,25 +92,20 @@ stages:
           "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\" `
           -Force
 
-    # Start Tomcat
+    # Start Tomcat Service
     - task: PowerShell@2
-      displayName: Start Tomcat
+      displayName: Start Tomcat Service
       inputs:
         targetType: 'inline'
         script: |
 
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+          net start Tomcat9
 
-          $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
+          Start-Sleep -Seconds 20
 
-          Start-Process `
-          "$env:CATALINA_HOME\bin\startup.bat"
-
-          Start-Sleep -Seconds 25
-
-    # Verify Tomcat
+    # Verify Deployment
     - task: PowerShell@2
-      displayName: Verify Tomcat Running
+      displayName: Verify Deployment
       inputs:
         targetType: 'inline'
         script: |
@@ -137,4 +114,4 @@ stages:
 
           Write-Host ""
           Write-Host "Application URL:"
-          Write-Host "http://localhost:8080/JavaLoginShowcase-1.0.0"
+          Write-Host "http://localhost:8080"
