@@ -8,9 +8,9 @@ variables:
 
 stages:
 
-# =========================
+# ==========================================
 # BUILD STAGE
-# =========================
+# ==========================================
 - stage: Build
   displayName: Build WAR
 
@@ -28,7 +28,9 @@ stages:
 
           $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
 
-          $env:PATH="$env:JAVA_HOME\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
+          $env:MAVEN_HOME="D:\Shruti\Tools\apache-maven-3.9.12"
+
+          $env:PATH="$env:JAVA_HOME\bin;$env:MAVEN_HOME\bin;$env:PATH"
 
           java -version
           mvn -version
@@ -43,11 +45,11 @@ stages:
         publishLocation: 'Container'
 
 
-# =========================
+# ==========================================
 # DEPLOY STAGE
-# =========================
+# ==========================================
 - stage: Deploy
-  displayName: Deploy to Tomcat
+  displayName: Deploy To Tomcat
   dependsOn: Build
 
   jobs:
@@ -55,23 +57,26 @@ stages:
 
     steps:
 
+    # Download Artifact
     - download: current
       artifact: java-war
 
-    # Stop Tomcat Service
+    # Stop Tomcat
     - task: PowerShell@2
-      displayName: Stop Tomcat Service
+      displayName: Stop Tomcat
       inputs:
         targetType: 'inline'
         script: |
 
+          Write-Host "Stopping Tomcat..."
+
           net stop Tomcat9
 
-          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 15
 
-    # Remove Old WAR
+    # Clean old deployment
     - task: PowerShell@2
-      displayName: Remove Old WAR
+      displayName: Clean Old WAR
       inputs:
         targetType: 'inline'
         script: |
@@ -80,7 +85,7 @@ stages:
           "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\JavaLoginShowcase*" `
           -Recurse -Force -ErrorAction SilentlyContinue
 
-    # Copy New WAR
+    # Copy new WAR
     - task: PowerShell@2
       displayName: Copy WAR
       inputs:
@@ -92,16 +97,20 @@ stages:
           "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\" `
           -Force
 
-    # Start Tomcat Service
+          Write-Host "WAR Copied"
+
+    # Start Tomcat
     - task: PowerShell@2
-      displayName: Start Tomcat Service
+      displayName: Start Tomcat
       inputs:
         targetType: 'inline'
         script: |
 
+          Write-Host "Starting Tomcat..."
+
           net start Tomcat9
 
-          Start-Sleep -Seconds 20
+          Start-Sleep -Seconds 30
 
     # Verify Deployment
     - task: PowerShell@2
@@ -110,8 +119,14 @@ stages:
         targetType: 'inline'
         script: |
 
+          Write-Host "Checking Port 8080..."
+
           netstat -ano | findstr 8080
 
           Write-Host ""
-          Write-Host "Application URL:"
+          Write-Host "Tomcat URL:"
           Write-Host "http://localhost:8080"
+
+          Write-Host ""
+          Write-Host "Application URL:"
+          Write-Host "http://localhost:8080/JavaLoginShowcase-1.0.0"
