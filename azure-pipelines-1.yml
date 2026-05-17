@@ -7,43 +7,60 @@ variables:
   - group: New variable group 22-Apr
 
 stages:
+
+# =========================
+# BUILD STAGE
+# =========================
 - stage: Build
+  displayName: Build WAR
+
   jobs:
   - job: MavenBuild
+
     steps:
 
+    # Java + Maven Check
     - task: PowerShell@2
       displayName: Check Java and Maven
       inputs:
         targetType: 'inline'
         script: |
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
-          $env:PATH="$($env:JAVA_HOME)\bin;$env:PATH"
-          Write-Host "JAVA_HOME = $env:JAVA_HOME"
-          Write-Host "PATH = $env:PATH"
-          & java -version
-          & mvn --version
 
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+
+          $env:PATH="$env:JAVA_HOME\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
+
+          java -version
+          mvn -version
+
+    # Maven Build
     - task: PowerShell@2
       displayName: Maven Clean Package
       inputs:
         targetType: 'inline'
         workingDirectory: '$(System.DefaultWorkingDirectory)\JavaLoginPage'
         script: |
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
-          $env:PATH="$($env:JAVA_HOME)\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
-          & mvn clean package
 
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+
+          $env:PATH="$env:JAVA_HOME\bin;D:\Shruti\Tools\apache-maven-3.9.12\bin;$env:PATH"
+
+          mvn clean package
+
+    # Publish WAR Artifact
     - task: PublishBuildArtifacts@1
+      displayName: Publish WAR Artifact
       inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\JavaLoginPage\target'
+        PathtoPublish: '$(System.DefaultWorkingDirectory)\JavaLoginPage\target'
         ArtifactName: 'java-war'
         publishLocation: 'Container'
 
 
+# =========================
+# DEPLOY STAGE
+# =========================
 - stage: Deploy
   displayName: Deploy to Tomcat
-
   dependsOn: Build
 
   jobs:
@@ -66,11 +83,20 @@ stages:
 
           $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
 
-          $env:PATH="$env:JAVA_HOME\bin;$env:CATALINA_HOME\bin;$env:PATH"
-
-          & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\shutdown.bat"
+          & "$env:CATALINA_HOME\bin\shutdown.bat"
 
           Start-Sleep -Seconds 10
+
+    # Clean Old Deployment
+    - task: PowerShell@2
+      displayName: Clean Old WAR
+      inputs:
+        targetType: 'inline'
+        script: |
+
+          Remove-Item `
+          "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\JavaLoginShowcase*" `
+          -Recurse -Force -ErrorAction SilentlyContinue
 
     # Copy WAR File
     - task: PowerShell@2
@@ -95,21 +121,20 @@ stages:
 
           $env:CATALINA_HOME="D:\Shruti\Tools\apache-tomcat-9.0.118"
 
-          $env:PATH="$env:JAVA_HOME\bin;$env:CATALINA_HOME\bin;$env:PATH"
+          Start-Process `
+          "$env:CATALINA_HOME\bin\startup.bat"
 
-          & "D:\Shruti\Tools\apache-tomcat-9.0.118\bin\startup.bat"
+          Start-Sleep -Seconds 25
 
-          Start-Sleep -Seconds 20
-
-    # Verify Deployment
+    # Verify Tomcat
     - task: PowerShell@2
-      displayName: Verify Application
+      displayName: Verify Tomcat Running
       inputs:
         targetType: 'inline'
         script: |
 
-          Write-Host "Application deployed successfully"
+          netstat -ano | findstr 8080
 
-          Write-Host "Open Browser:"
-
-          Write-Host "http://localhost:8080/JavaLoginShowcase"
+          Write-Host ""
+          Write-Host "Application URL:"
+          Write-Host "http://localhost:8080/JavaLoginShowcase-1.0.0"
