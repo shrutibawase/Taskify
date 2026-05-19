@@ -78,9 +78,7 @@ stages:
         script: |
 
           Write-Host "Stopping Tomcat..."
-
           net stop Tomcat9
-
           Start-Sleep -Seconds 15
 
     # Clean old deployment
@@ -89,7 +87,6 @@ stages:
       inputs:
         targetType: 'inline'
         script: |
-
           Remove-Item `
           "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\JavaLoginShowcase*" `
           -Recurse -Force -ErrorAction SilentlyContinue
