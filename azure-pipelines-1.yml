@@ -20,16 +20,23 @@ stages:
 
     - task: PowerShell@2
       displayName: Maven Build
+
       inputs:
         targetType: 'inline'
         workingDirectory: '$(System.DefaultWorkingDirectory)\JavaLoginPage'
+
         script: |
 
-          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+          # JAVA
+          $env:JAVA_HOME="D:\Shruti\Tools\Eclipse Adoptium\jdk-21.0.11+10"
 
+          # MAVEN
           $env:MAVEN_HOME="D:\Shruti\Tools\apache-maven-3.9.12"
 
-          $env:PATH="$env:JAVA_HOME\bin;$env:MAVEN_HOME\bin;$env:PATH"
+          # PATH
+          $env:Path="$env:JAVA_HOME\bin;$env:MAVEN_HOME\bin;$env:Path"
+
+          Write-Host "JAVA_HOME = $env:JAVA_HOME"
 
           java -version
           mvn -version
@@ -38,11 +45,12 @@ stages:
 
     - task: PublishBuildArtifacts@1
       displayName: Publish WAR
+
       inputs:
         PathtoPublish: '$(System.DefaultWorkingDirectory)\JavaLoginPage\target'
         ArtifactName: 'java-war'
         publishLocation: 'Container'
-
+        
 - stage: Static_Analysis 
   jobs: 
     - job: staticAnalysis
