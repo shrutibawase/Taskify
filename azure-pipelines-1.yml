@@ -73,80 +73,171 @@ stages:
 # ==========================================
 - stage: Deploy
   displayName: Deploy To Tomcat
-  dependsOn: Build
+
+  dependsOn:
+  - Build
+  - Static_Analysis
 
   jobs:
   - job: DeployWAR
+    displayName: Deploy WAR To Tomcat
 
     steps:
 
-    # Download Artifact
+    # ==========================================
+    # DOWNLOAD ARTIFACT
+    # ==========================================
     - download: current
       artifact: java-war
 
-    # Stop Tomcat
+    # ==========================================
+    # CHECK TOMCAT SERVICE
+    # ==========================================
+    - task: PowerShell@2
+      displayName: Check Tomcat Service
+
+      inputs:
+        targetType: 'inline'
+        script: |
+
+          Write-Host "===== CHECKING TOMCAT SERVICE ====="
+
+          $service = Get-Service -Name "Tomcat9" -ErrorAction SilentlyContinue
+
+          if ($null -eq $service) {
+              Write-Error "Tomcat9 service NOT found"
+              exit 1
+          }
+
+          Write-Host "Tomcat Service Found"
+
+    # ==========================================
+    # STOP TOMCAT
+    # ==========================================
     - task: PowerShell@2
       displayName: Stop Tomcat
+
       inputs:
         targetType: 'inline'
         script: |
 
-          Write-Host "Stopping Tomcat..."
-          net stop Tomcat9
-          Start-Sleep -Seconds 15
+          Write-Host "===== STOPPING TOMCAT ====="
 
-    # Clean old deployment
+          $service = Get-Service -Name "Tomcat9"
+
+          if ($service.Status -eq 'Running') {
+
+              Stop-Service -Name "Tomcat9" -Force
+
+              Start-Sleep -Seconds 15
+
+              Write-Host "Tomcat Stopped Successfully"
+          }
+          else {
+
+              Write-Host "Tomcat Already Stopped"
+          }
+
+    # ==========================================
+    # CLEAN OLD DEPLOYMENT
+    # ==========================================
     - task: PowerShell@2
       displayName: Clean Old WAR
+
       inputs:
         targetType: 'inline'
         script: |
-          Remove-Item `
-          "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\JavaLoginShowcase*" `
-          -Recurse -Force -ErrorAction SilentlyContinue
 
-    # Copy new WAR
+          Write-Host "===== CLEANING OLD DEPLOYMENT ====="
+
+          $webappsPath = "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps"
+
+          Remove-Item `
+          "$webappsPath\JavaLoginShowcase*" `
+          -Recurse `
+          -Force `
+          -ErrorAction SilentlyContinue
+
+          Write-Host "Old WAR Removed"
+
+    # ==========================================
+    # COPY NEW WAR
+    # ==========================================
     - task: PowerShell@2
       displayName: Copy WAR
+
       inputs:
         targetType: 'inline'
         script: |
+
+          Write-Host "===== COPYING NEW WAR ====="
+
+          $source = "$(Pipeline.Workspace)\java-war\*.war"
+
+          $destination = "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\"
 
           Copy-Item `
-          "$(Pipeline.Workspace)\java-war\*.war" `
-          "D:\Shruti\Tools\apache-tomcat-9.0.118\webapps\" `
+          $source `
+          $destination `
           -Force
 
-          Write-Host "WAR Copied"
+          Write-Host "WAR Copied Successfully"
 
-    # Start Tomcat
+    # ==========================================
+    # START TOMCAT
+    # ==========================================
     - task: PowerShell@2
       displayName: Start Tomcat
+
       inputs:
         targetType: 'inline'
         script: |
 
-          Write-Host "Starting Tomcat..."
+          Write-Host "===== STARTING TOMCAT ====="
 
-          net start Tomcat9
+          $service = Get-Service -Name "Tomcat9"
 
-          Start-Sleep -Seconds 30
+          if ($service.Status -ne 'Running') {
 
-    # Verify Deployment
+              Start-Service -Name "Tomcat9"
+
+              Start-Sleep -Seconds 30
+
+              Write-Host "Tomcat Started Successfully"
+          }
+          else {
+
+              Write-Host "Tomcat Already Running"
+          }
+
+    # ==========================================
+    # VERIFY DEPLOYMENT
+    # ==========================================
     - task: PowerShell@2
       displayName: Verify Deployment
+
       inputs:
         targetType: 'inline'
         script: |
 
+          Write-Host "===== VERIFYING DEPLOYMENT ====="
+
+          Write-Host ""
           Write-Host "Checking Port 8080..."
+          Write-Host ""
 
           netstat -ano | findstr 8080
 
           Write-Host ""
+          Write-Host "===== URLS ====="
+          Write-Host ""
+
           Write-Host "Tomcat URL:"
           Write-Host "http://localhost:8080"
 
           Write-Host ""
           Write-Host "Application URL:"
           Write-Host "http://localhost:8080/JavaLoginShowcase-1.0.0"
+
+          Write-Host ""
+          Write-Host "===== DEPLOYMENT SUCCESS ====="
