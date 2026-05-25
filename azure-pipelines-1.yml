@@ -188,59 +188,23 @@ stages:
     # ==========================================
     - task: PowerShell@2
       displayName: Start Tomcat
-
       inputs:
-        targetType: 'inline'
+        targetType: inline
         script: |
+          $env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-21.0.11.10-hotspot"
+          $env:CATALINA_HOME = "D:\Shruti\Tools\apache-tomcat-9.0.118"
+          $env:Path = "$env:JAVA_HOME\bin;$env:CATALINA_HOME\bin;$env:Path"
 
-          Write-Host "===== STARTING TOMCAT ====="
+          & "$env:CATALINA_HOME\bin\startup.bat"
+          Start-Sleep -Seconds 30
 
-          $service = Get-Service -Name "Tomcat9"
-
-          if ($service.Status -ne 'Running') {
-
-              Start-Service -Name "Tomcat9"
-
-              Start-Sleep -Seconds 30
-
-              Write-Host "Tomcat Started Successfully"
-          }
-          else {
-
-              Write-Host "Tomcat Already Running"
-          }
-
-    # ==========================================
-    # VERIFY DEPLOYMENT
-    # ==========================================
     - task: PowerShell@2
       displayName: Verify Deployment
-
       inputs:
-        targetType: 'inline'
+        targetType: inline
         script: |
+          Invoke-WebRequest "http://localhost:8080/JavaLoginShowcase-1.0.0" -UseBasicParsing
 
-          Write-Host "===== VERIFYING DEPLOYMENT ====="
-
-          Write-Host ""
-          Write-Host "Checking Port 8080..."
-          Write-Host ""
-
-          netstat -ano | findstr 8080
-
-          Write-Host ""
-          Write-Host "===== URLS ====="
-          Write-Host ""
-
-          Write-Host "Tomcat URL:"
-          Write-Host "http://localhost:8080"
-
-          Write-Host ""
-          Write-Host "Application URL:"
-          Write-Host "http://localhost:8080/JavaLoginShowcase-1.0.0"
-
-          Write-Host ""
-          Write-Host "===== DEPLOYMENT SUCCESS ====="
 
 - stage: dast
   displayName: DAST_Scanning
