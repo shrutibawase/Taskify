@@ -229,7 +229,7 @@ stages:
 
           .\zap.bat -cmd `
             -dir "$zapHome" `
-            -quickurl "http://localhost:8080/JavaLoginPage" `
+            -quickurl "http://localhost:8080/JavaLoginShowcase-1.0.0/" `
             -quickout "$(Build.SourcesDirectory)\zap-report.html"
             
     - task: PublishBuildArtifacts@1
