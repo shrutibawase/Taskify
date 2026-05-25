@@ -241,3 +241,27 @@ stages:
 
           Write-Host ""
           Write-Host "===== DEPLOYMENT SUCCESS ====="
+
+- stage: dast
+  displayName: DAST_Scanning
+  dependsOn:
+  - deploy
+  jobs:
+  - job: ZAPScan
+    displayName: OWASP_ZAP_Scan
+    steps:
+    - task: PowerShell@2
+      displayName: Run OWASP ZAP Scan
+      inputs:
+        targetType: 'inline'
+        script: |2
+
+          cd "C:\Program Files\ZAP\Zed Attack Proxy"
+
+          .\zap.bat -cmd -quickurl "http://localhost:8080/JavaLoginPage" -quickout "$(Build.SourcesDirectory)\zap-report.html"
+    - task: PublishBuildArtifacts@1
+      displayName: Publish ZAP Report
+      inputs:
+        PathtoPublish: 'zap-report.html'
+        ArtifactName: 'ZAP-Report'
+        publishLocation: 'Container'
