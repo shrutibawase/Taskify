@@ -217,12 +217,21 @@ stages:
     - task: PowerShell@2
       displayName: Run OWASP ZAP Scan
       inputs:
-        targetType: 'inline'
-        script: |2
+        targetType: inline
+        script: |
+          taskkill /F /IM java.exe /T 2>$null
+          Start-Sleep -Seconds 5
+
+          $zapHome = "$(Build.SourcesDirectory)\zap-home"
+          New-Item -ItemType Directory -Force -Path $zapHome | Out-Null
 
           cd "C:\Program Files\ZAP\Zed Attack Proxy"
 
-          .\zap.bat -cmd -quickurl "http://localhost:8080/JavaLoginPage" -quickout "$(Build.SourcesDirectory)\zap-report.html"
+          .\zap.bat -cmd `
+            -dir "$zapHome" `
+            -quickurl "http://localhost:8080/JavaLoginPage" `
+            -quickout "$(Build.SourcesDirectory)\zap-report.html"
+            
     - task: PublishBuildArtifacts@1
       displayName: Publish ZAP Report
       inputs:
